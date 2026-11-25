@@ -74,7 +74,7 @@ export function RuleBuilderPanel({
             Describe entry, holder limits, and exit in plain language
           </p>
         </div>
-        <SlidersHorizontal weight="thin" className="h-4 w-4 text-sky-400/80" />
+        <SlidersHorizontal weight="thin" className="h-4 w-4 text-emerald-400/80" />
       </div>
 
       <form onSubmit={handleCompile} className="border-b border-white/[0.08] p-6">
@@ -83,7 +83,7 @@ export function RuleBuilderPanel({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="e.g. Snipe new $TTEQ pairs under $100K cap, top 10 holders under 15%, buy 0.05 ETH, take profit at 2x"
-          className="w-full resize-none rounded-xl border border-white/[0.08] bg-black/40 p-3.5 text-sm font-light leading-relaxed text-white placeholder-zinc-500 focus:border-sky-400/40 focus:outline-none"
+          className="w-full resize-none rounded-xl border border-white/[0.08] bg-black/40 p-3.5 text-sm font-light leading-relaxed text-white placeholder-zinc-500 focus:border-emerald-400/40 focus:outline-none"
         />
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -130,7 +130,7 @@ export function RuleBuilderPanel({
                   <div>
                     <div className="flex items-center gap-2.5">
                       <span className="text-sm font-normal text-white">{rule.name}</span>
-                      <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-2 py-0.5 text-[10px] text-sky-300 tabular-nums">
+                      <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-300 tabular-nums">
                         {matches} {matches === 1 ? 'match' : 'matches'}
                       </span>
                     </div>
@@ -156,7 +156,7 @@ export function RuleBuilderPanel({
                 <div className="mt-4 grid grid-cols-4 gap-4 rounded-xl border border-white/[0.05] bg-black/30 p-3 text-xs tabular-nums">
                   <div>
                     <span className="block text-[10px] font-light text-zinc-500">Pair</span>
-                    <span className="text-sky-300">{rule.pairAsset}</span>
+                    <span className="text-emerald-300">{rule.pairAsset}</span>
                   </div>
                   <div>
                     <span className="block text-[10px] font-light text-zinc-500">Max Cap</span>

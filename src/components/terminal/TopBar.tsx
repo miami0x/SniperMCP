@@ -19,9 +19,9 @@ export function TopBar({ source, activeRuleCount, poolCount }: TopBarProps) {
     <header className="relative z-10 flex items-center justify-between border-b border-white/[0.08] bg-black/40 px-6 py-4 backdrop-blur-xl">
       <div className="flex items-baseline gap-4">
         <h1 className="bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-lg font-light tracking-[-0.03em] text-transparent">
-          Sniper<span className="font-normal text-sky-400">MCP</span>
+          Sniper<span className="font-normal text-emerald-400">MCP</span>
         </h1>
-        <span className="hidden rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-0.5 text-[11px] font-light text-sky-300 sm:inline">
+        <span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-0.5 text-[11px] font-light text-emerald-300 sm:inline">
           Robinhood Chain · 4663
         </span>
       </div>
@@ -38,7 +38,7 @@ export function TopBar({ source, activeRuleCount, poolCount }: TopBarProps) {
           <span className="text-zinc-700">/</span>
           <span>{poolCount} pools</span>
           <span className="text-zinc-700">/</span>
-          <span className="text-sky-300">{activeRuleCount} active rules</span>
+          <span className="text-emerald-300">{activeRuleCount} active rules</span>
         </div>
 
         {isConnected && address ? (

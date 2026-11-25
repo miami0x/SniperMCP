@@ -50,7 +50,7 @@ export function RadarPanel({
           className="rounded-full border border-white/10 bg-white/[0.03] p-2 text-zinc-400 transition hover:border-white/25 hover:text-white"
           title="Refresh"
         >
-          <ArrowsClockwise weight="thin" className={`h-4 w-4 ${loading ? 'animate-spin text-sky-400' : ''}`} />
+          <ArrowsClockwise weight="thin" className={`h-4 w-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
         </button>
       </div>
 
@@ -61,7 +61,7 @@ export function RadarPanel({
             onClick={() => setFilter(f)}
             className={`rounded-full px-3 py-1 transition ${
               filter === f
-                ? 'border border-sky-400/40 bg-sky-400/15 text-sky-200'
+                ? 'border border-emerald-400/40 bg-emerald-400/15 text-emerald-200'
                 : 'text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-200'
             }`}
           >
@@ -79,7 +79,7 @@ export function RadarPanel({
               onClick={() => onSelectPool(pool)}
               className={`cursor-pointer px-5 py-4 transition ${
                 isSelected
-                  ? 'bg-gradient-to-r from-sky-500/[0.12] via-white/[0.04] to-transparent'
+                  ? 'bg-gradient-to-r from-emerald-500/[0.12] via-white/[0.04] to-transparent'
                   : 'hover:bg-white/[0.03]'
               }`}
             >
@@ -90,7 +90,7 @@ export function RadarPanel({
                   </span>
                   <span className="text-xs font-light text-zinc-500">/{pool.quoteToken.symbol}</span>
                   {pool.isStockPaired && (
-                    <span className="ml-1 rounded-full border border-sky-400/30 bg-sky-400/10 px-2 py-0.5 text-[10px] text-sky-300">
+                    <span className="ml-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-300">
                       Stock
                     </span>
                   )}
@@ -125,7 +125,7 @@ export function RadarPanel({
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center gap-1 text-zinc-400 transition hover:text-sky-300"
+                  className="flex items-center gap-1 text-zinc-400 transition hover:text-emerald-300"
                 >
                   Chart <ArrowUpRight weight="thin" className="h-3 w-3" />
                 </a>
