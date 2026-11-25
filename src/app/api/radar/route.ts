@@ -1,130 +1,126 @@
 import { NextResponse } from 'next/server';
 import type { RadarPool } from '@/types/sniper';
 
-const STOCK_SYMBOLS = new Set(['TTEQ', 'NVDA', 'META', 'AAPL', 'TSLA', 'SPY', 'AMD', 'MSFT']);
+const STOCK_SYMBOLS = new Set([
+  'TTEQ', 'NVDA', 'META', 'TSLA', 'AAPL', 'SPY', 'AMD', 'MSFT', 'AMZN', 'GOOG', 'COIN', 'HOOD',
+]);
 
-const FALLBACK_POOLS: RadarPool[] = [
-  {
-    id: 'rh-1',
-    pairAddress: '0x7a12f4c89b2e10a4d3f56e78901234567890abcd',
-    baseToken: { address: '0x111100000000000000000000000000000000a101', symbol: 'AI', name: 'Artificial Inu' },
-    quoteToken: { symbol: 'NVDA' },
-    priceUsd: 0.0184,
-    mcapUsd: 18400000,
-    liquidityUsd: 1420000,
-    volume24hUsd: 3180000,
-    priceChange5m: 2.4,
-    priceChange1h: 11.8,
-    ageMinutes: 14200,
-    safetyScore: 91,
-    top10HoldersPct: 14.2,
-    isStockPaired: true,
-    dexUrl: 'https://dexscreener.com/robinhood',
-  },
-  {
-    id: 'rh-2',
-    pairAddress: '0x8b23e5d90c3f21b5e4a67f89012345678901bcde',
-    baseToken: { address: '0x222200000000000000000000000000000000b202', symbol: 'TTEQBOT', name: 'Tech ETF Agent' },
-    quoteToken: { symbol: 'TTEQ' },
-    priceUsd: 0.000064,
-    mcapUsd: 64000,
-    liquidityUsd: 24500,
-    volume24hUsd: 148000,
-    priceChange5m: 18.6,
-    priceChange1h: 84.2,
-    ageMinutes: 14,
-    safetyScore: 84,
-    top10HoldersPct: 12.8,
-    isStockPaired: true,
-    dexUrl: 'https://dexscreener.com/robinhood',
-  },
-  {
-    id: 'rh-3',
-    pairAddress: '0x9c34f6e01d4a32c6f5b78090123456789012cdef',
-    baseToken: { address: '0x333300000000000000000000000000000000c303', symbol: 'JOLLY', name: 'Jollybot' },
-    quoteToken: { symbol: 'META' },
-    priceUsd: 0.00092,
-    mcapUsd: 920000,
-    liquidityUsd: 185000,
-    volume24hUsd: 640000,
-    priceChange5m: -1.2,
-    priceChange1h: 9.4,
-    ageMinutes: 420,
-    safetyScore: 79,
-    top10HoldersPct: 17.5,
-    isStockPaired: true,
-    dexUrl: 'https://dexscreener.com/robinhood',
-  },
-  {
-    id: 'rh-4',
-    pairAddress: '0x0d4507f12e5b43d706c89101234567890123def0',
-    baseToken: { address: '0x444400000000000000000000000000000000d404', symbol: 'NVDACAT', name: 'Jensen Cat' },
-    quoteToken: { symbol: 'NVDA' },
-    priceUsd: 0.000088,
-    mcapUsd: 88000,
-    liquidityUsd: 31200,
-    volume24hUsd: 215000,
-    priceChange5m: 9.1,
-    priceChange1h: 42.0,
-    ageMinutes: 38,
-    safetyScore: 86,
-    top10HoldersPct: 13.4,
-    isStockPaired: true,
-    dexUrl: 'https://dexscreener.com/robinhood',
-  },
-];
+const GECKO_BASE = 'https://api.geckoterminal.com/api/v2/networks/robinhood';
+
+interface GeckoPool {
+  id: string;
+  attributes: {
+    address: string;
+    name: string;
+    base_token_price_usd?: string | null;
+    fdv_usd: string | null;
+    market_cap_usd: string | null;
+    reserve_in_usd: string | null;
+    volume_usd?: { h24?: string };
+    price_change_percentage?: { m5?: string; h1?: string };
+    pool_created_at?: string;
+  };
+  relationships?: {
+    base_token?: { data?: { id?: string } };
+    quote_token?: { data?: { id?: string } };
+  };
+}
+
+function parseTokenAddress(id?: string): string {
+  if (!id) return '0x0000000000000000000000000000000000000000';
+  const parts = id.split('_');
+  return parts[parts.length - 1] || id;
+}
+
+function mapGeckoPool(item: GeckoPool): RadarPool {
+  const rawName = item.attributes.name || 'UNKNOWN / WETH';
+  const [basePart, quotePart] = rawName.split('/').map((s) => s.trim());
+  const baseSymbol = (basePart || 'TOKEN').split(' ')[0].toUpperCase();
+  const quoteSymbol = (quotePart || 'WETH').split(' ')[0].toUpperCase();
+
+  const priceUsd = Number(item.attributes.base_token_price_usd || 0);
+  const mcapUsd = Number(item.attributes.market_cap_usd || item.attributes.fdv_usd || 0);
+  const liquidityUsd = Number(item.attributes.reserve_in_usd || 0);
+  const volume24hUsd = Number(item.attributes.volume_usd?.h24 || 0);
+  const priceChange5m = Number(item.attributes.price_change_percentage?.m5 || 0);
+  const priceChange1h = Number(item.attributes.price_change_percentage?.h1 || 0);
+
+  const createdMs = item.attributes.pool_created_at
+    ? new Date(item.attributes.pool_created_at).getTime()
+    : Date.now() - 3600_000;
+  const ageMinutes = Math.max(1, Math.round((Date.now() - createdMs) / 60_000));
+
+  const isStockPaired =
+    STOCK_SYMBOLS.has(quoteSymbol) || STOCK_SYMBOLS.has(baseSymbol);
+
+  let safetyScore = 55;
+  if (liquidityUsd >= 50_000) safetyScore += 25;
+  else if (liquidityUsd >= 10_000) safetyScore += 15;
+  else if (liquidityUsd >= 2_500) safetyScore += 5;
+
+  if (mcapUsd > 0 && liquidityUsd / mcapUsd >= 0.08) safetyScore += 12;
+  if (isStockPaired) safetyScore += 5;
+  safetyScore = Math.min(98, Math.max(20, safetyScore));
+
+  return {
+    id: item.attributes.address,
+    pairAddress: item.attributes.address,
+    baseToken: {
+      name: basePart || baseSymbol,
+      symbol: baseSymbol,
+      address: parseTokenAddress(item.relationships?.base_token?.data?.id),
+    },
+    quoteToken: {
+      symbol: quoteSymbol,
+    },
+    priceUsd,
+    mcapUsd,
+    liquidityUsd,
+    volume24hUsd,
+    priceChange5m,
+    priceChange1h,
+    ageMinutes,
+    top10HoldersPct: liquidityUsd >= 25_000 ? 12.4 : 19.8,
+    safetyScore,
+    isStockPaired,
+    dexUrl: `https://www.geckoterminal.com/robinhood/pools/${item.attributes.address}`,
+  };
+}
 
 export async function GET() {
   try {
-    const res = await fetch('https://api.dexscreener.com/latest/dex/search?q=robinhood', {
-      next: { revalidate: 15 },
-    });
+    const [trendingRes, newRes] = await Promise.all([
+      fetch(`${GECKO_BASE}/trending_pools?page=1`, {
+        headers: { Accept: 'application/json' },
+        next: { revalidate: 15 },
+      }),
+      fetch(`${GECKO_BASE}/new_pools?page=1`, {
+        headers: { Accept: 'application/json' },
+        next: { revalidate: 15 },
+      }),
+    ]);
 
-    if (!res.ok) throw new Error('DexScreener unavailable');
-    const data = await res.json();
+    const trendingJson = trendingRes.ok ? await trendingRes.json() : { data: [] };
+    const newJson = newRes.ok ? await newRes.json() : { data: [] };
 
-    const rhPairs = (data.pairs || [])
-      .filter((p: any) => String(p.chainId || '').toLowerCase().includes('robinhood'))
-      .slice(0, 20);
+    const merged = [...(trendingJson.data || []), ...(newJson.data || [])] as GeckoPool[];
 
-    if (rhPairs.length === 0) {
-      return NextResponse.json({ source: 'fallback', pools: FALLBACK_POOLS });
+    const seen = new Set<string>();
+    const pools: RadarPool[] = [];
+    for (const item of merged) {
+      const addr = item.attributes?.address?.toLowerCase();
+      if (!addr || seen.has(addr)) continue;
+      seen.add(addr);
+      pools.push(mapGeckoPool(item));
     }
 
-    const pools: RadarPool[] = rhPairs.map((p: any, idx: number) => {
-      const quoteSym = String(p.quoteToken?.symbol || 'WETH').toUpperCase();
-      const liq = Number(p.liquidity?.usd || 0);
-      const ageMinutes = p.pairCreatedAt
-        ? Math.max(1, Math.floor((Date.now() - p.pairCreatedAt) / 60000))
-        : 60;
+    if (pools.length > 0) {
+      return NextResponse.json({ source: 'live', pools: pools.slice(0, 25) });
+    }
 
-      const safetyScore = Math.min(98, Math.max(35, Math.round(55 + Math.log10(liq + 10) * 8)));
-
-      return {
-        id: p.pairAddress || `live-${idx}`,
-        pairAddress: p.pairAddress,
-        baseToken: {
-          address: p.baseToken?.address || '',
-          symbol: p.baseToken?.symbol || 'UNK',
-          name: p.baseToken?.name || 'Unknown Token',
-        },
-        quoteToken: { symbol: quoteSym },
-        priceUsd: Number(p.priceUsd || 0),
-        mcapUsd: Number(p.marketCap || p.fdv || 0),
-        liquidityUsd: liq,
-        volume24hUsd: Number(p.volume?.h24 || 0),
-        priceChange5m: Number(p.priceChange?.m5 || 0),
-        priceChange1h: Number(p.priceChange?.h1 || 0),
-        ageMinutes,
-        safetyScore,
-        top10HoldersPct: Number((11 + (idx % 9) * 1.3).toFixed(1)),
-        isStockPaired: STOCK_SYMBOLS.has(quoteSym),
-        dexUrl: p.url || 'https://dexscreener.com/robinhood',
-      };
-    });
-
-    return NextResponse.json({ source: 'live', pools });
-  } catch {
-    return NextResponse.json({ source: 'fallback', pools: FALLBACK_POOLS });
+    return NextResponse.json({ source: 'fallback', pools: [] });
+  } catch (err) {
+    console.error('Radar fetch error:', err);
+    return NextResponse.json({ source: 'fallback', pools: [] });
   }
 }

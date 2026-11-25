@@ -1,26 +1,46 @@
 'use client';
 
-import { useState } from 'react';
-import { ShieldCheck } from '@phosphor-icons/react';
+import { useEffect, useState, useCallback } from 'react';
+import { useAccount } from 'wagmi';
 import type { RadarPool, SimulationResult } from '@/types/sniper';
 
 interface ExecutionPanelProps {
   selectedPool: RadarPool | null;
 }
 
-interface SimPosition {
+interface SavedPosition {
   id: string;
+  tokenAddress: string;
   symbol: string;
-  quote: string;
+  quoteSymbol: string;
   entryEth: number;
   pnlPct: number;
 }
 
 export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
+  const { address } = useAccount();
+  const walletKey = (address || 'guest').toLowerCase();
+
   const [buyAmount, setBuyAmount] = useState('0.05');
   const [simLoading, setSimLoading] = useState(false);
   const [simResult, setSimResult] = useState<SimulationResult | null>(null);
-  const [positions, setPositions] = useState<SimPosition[]>([]);
+  const [positions, setPositions] = useState<SavedPosition[]>([]);
+
+  const fetchPositions = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/positions?wallet=${encodeURIComponent(walletKey)}`);
+      const data = await res.json();
+      if (Array.isArray(data.positions)) {
+        setPositions(data.positions);
+      }
+    } catch (err) {
+      console.error('Failed to load positions:', err);
+    }
+  }, [walletKey]);
+
+  useEffect(() => {
+    fetchPositions();
+  }, [fetchPositions]);
 
   async function handleSimulate() {
     if (!selectedPool || simLoading) return;
@@ -41,30 +61,60 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
     }
   }
 
-  function handlePaperSnipe() {
+  async function handlePaperSnipe() {
     if (!selectedPool) return;
-    setPositions((prev) => [
-      {
-        id: `pos-${Date.now()}`,
-        symbol: selectedPool.baseToken.symbol,
-        quote: selectedPool.quoteToken.symbol,
-        entryEth: parseFloat(buyAmount) || 0.05,
-        pnlPct: Number((Math.random() * 24 - 4).toFixed(1)),
-      },
-      ...prev,
-    ]);
+    const newPos: SavedPosition = {
+      id: `pos-${Date.now()}`,
+      tokenAddress: selectedPool.baseToken.address,
+      symbol: selectedPool.baseToken.symbol,
+      quoteSymbol: selectedPool.quoteToken.symbol,
+      entryEth: parseFloat(buyAmount) || 0.05,
+      pnlPct: Number((Math.random() * 24 - 4).toFixed(1)),
+    };
+
+    setPositions((prev) => [newPos, ...prev]);
+
+    try {
+      await fetch('/api/positions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newPos, walletAddress: walletKey }),
+      });
+    } catch (err) {
+      console.error('Failed to save position:', err);
+    }
+  }
+
+  async function handleClosePosition(id: string) {
+    setPositions((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await fetch(
+        `/api/positions?id=${encodeURIComponent(id)}&wallet=${encodeURIComponent(walletKey)}`,
+        { method: 'DELETE' }
+      );
+    } catch (err) {
+      console.error('Failed to close position:', err);
+    }
+  }
+
+  async function handleCloseAll() {
+    setPositions([]);
+    try {
+      await fetch(`/api/positions?all=true&wallet=${encodeURIComponent(walletKey)}`, {
+        method: 'DELETE',
+      });
+    } catch (err) {
+      console.error('Failed to close all positions:', err);
+    }
   }
 
   return (
-    <section className="glass-panel flex h-full flex-col overflow-hidden rounded-2xl">
-      <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-4">
-        <div>
-          <h2 className="text-sm font-normal tracking-[-0.01em] text-white">Execution</h2>
-          <p className="mt-0.5 text-xs font-light text-zinc-400">
-            Pre-flight simulation &amp; positions
-          </p>
-        </div>
-        <ShieldCheck weight="thin" className="h-4 w-4 text-emerald-400/80" />
+    <section className="flex h-full flex-col">
+      <div className="border-b border-white/[0.08] px-6 py-4">
+        <h2 className="text-sm font-medium tracking-[-0.01em] text-white">Execution</h2>
+        <p className="mt-0.5 text-xs font-light text-zinc-500">
+          Pre-flight simulation &amp; active positions
+        </p>
       </div>
 
       <div className="border-b border-white/[0.08] p-6">
@@ -72,19 +122,20 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
           <>
             <div className="flex items-baseline justify-between">
               <div>
-                <span className="bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-xl font-extralight tracking-[-0.03em] text-transparent">
+                <span className="text-xl font-normal tracking-[-0.02em] text-white">
                   {selectedPool.baseToken.symbol}
                 </span>
                 <span className="ml-1.5 text-sm font-light text-zinc-500">
                   /{selectedPool.quoteToken.symbol}
                 </span>
               </div>
-              <span className="text-xs font-light text-zinc-500 tabular-nums">
-                {selectedPool.baseToken.address.slice(0, 6)}…{selectedPool.baseToken.address.slice(-4)}
+              <span className="font-mono text-xs text-zinc-500">
+                {selectedPool.baseToken.address.slice(0, 6)}…
+                {selectedPool.baseToken.address.slice(-4)}
               </span>
             </div>
 
-            <div className="mt-6 flex items-center justify-between rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3">
+            <div className="mt-6 flex items-center justify-between rounded-xl border border-white/10 bg-black/40 px-4 py-3">
               <div className="flex items-baseline gap-2">
                 <input
                   type="number"
@@ -99,22 +150,24 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
               <button
                 onClick={handleSimulate}
                 disabled={simLoading}
-                className="rounded-full border border-emerald-400/35 bg-emerald-400/10 px-4 py-1.5 text-xs font-normal text-emerald-200 transition hover:bg-emerald-400/20 disabled:opacity-40"
+                className="rounded-full border border-emerald-400/35 bg-emerald-400/10 px-4 py-1.5 text-xs font-normal text-emerald-300 transition hover:bg-emerald-400/20 disabled:opacity-40"
               >
                 {simLoading ? 'Checking…' : 'Simulate'}
               </button>
             </div>
 
             {simResult && (
-              <div className="mt-5 space-y-3 rounded-xl border border-white/[0.06] bg-black/30 p-4 text-xs font-light">
+              <div className="mt-5 space-y-3 rounded-xl border border-white/[0.08] bg-black/30 p-4 text-xs font-light">
                 <div className="flex items-center justify-between">
                   <span className={simResult.safe ? 'text-emerald-400' : 'text-amber-400'}>
                     Risk · {simResult.honeypotRisk}
                   </span>
-                  <span className="text-zinc-400 tabular-nums">{simResult.estimatedGasGwei} gwei</span>
+                  <span className="text-zinc-400 tabular-nums">
+                    {simResult.estimatedGasGwei} gwei
+                  </span>
                 </div>
 
-                <ul className="space-y-1.5 text-zinc-400">
+                <ul className="space-y-1.5 text-zinc-300">
                   {simResult.notes.map((n, i) => (
                     <li key={i} className="leading-relaxed">
                       — {n}
@@ -124,7 +177,7 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
 
                 <button
                   onClick={handlePaperSnipe}
-                  className="liquid-btn mt-2 w-full rounded-full py-2.5 text-xs font-medium transition"
+                  className="mt-2 w-full rounded-full bg-white py-2.5 text-xs font-medium text-black transition hover:bg-zinc-200"
                 >
                   Execute Paper Snipe ({buyAmount} ETH)
                 </button>
@@ -140,10 +193,12 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden p-6">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs font-normal text-zinc-400">Positions ({positions.length})</span>
+          <span className="text-xs font-normal text-zinc-400">
+            Positions ({positions.length})
+          </span>
           {positions.length > 0 && (
             <button
-              onClick={() => setPositions([])}
+              onClick={handleCloseAll}
               className="text-xs font-light text-rose-400 transition hover:text-rose-300"
             >
               Close All
@@ -158,16 +213,30 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
             </p>
           ) : (
             positions.map((pos) => (
-              <div key={pos.id} className="flex items-center justify-between py-3 text-xs tabular-nums">
+              <div
+                key={pos.id}
+                className="flex items-center justify-between py-3 text-xs tabular-nums"
+              >
                 <div>
-                  <span className="font-normal text-white">{pos.symbol}</span>
-                  <span className="text-zinc-500">/{pos.quote}</span>
-                  <span className="block text-[11px] font-light text-zinc-500">{pos.entryEth} ETH</span>
+                  <span className="font-medium text-white">{pos.symbol}</span>
+                  <span className="text-zinc-500">/{pos.quoteSymbol}</span>
+                  <span className="block text-[11px] font-light text-zinc-500">
+                    {pos.entryEth} ETH
+                  </span>
                 </div>
-                <span className={pos.pnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                  {pos.pnlPct >= 0 ? '+' : ''}
-                  {pos.pnlPct}%
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className={pos.pnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                    {pos.pnlPct >= 0 ? '+' : ''}
+                    {pos.pnlPct}%
+                  </span>
+                  <button
+                    onClick={() => handleClosePosition(pos.id)}
+                    className="text-zinc-500 transition hover:text-rose-400"
+                    title="Close position"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
             ))
           )}
