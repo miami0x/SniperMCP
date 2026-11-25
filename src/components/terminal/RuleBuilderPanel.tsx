@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Power, Trash2, Zap } from 'lucide-react';
 import type { RadarPool, SniperRule } from '@/types/sniper';
 
 interface RuleBuilderPanelProps {
@@ -37,7 +36,6 @@ export function RuleBuilderPanel({
 }: RuleBuilderPanelProps) {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [parserMode, setParserMode] = useState<string | null>(null);
 
   async function handleCompile(e: React.FormEvent) {
     e.preventDefault();
@@ -52,7 +50,6 @@ export function RuleBuilderPanel({
       });
       const data = await res.json();
       if (data.rule) {
-        setParserMode(data.mode || 'local-parser');
         onAddRule({
           id: `rule-${Date.now()}`,
           rawPrompt: prompt,
@@ -68,38 +65,33 @@ export function RuleBuilderPanel({
   }
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-zinc-800/90 bg-[#0a0a0a]">
-      <div className="flex items-center justify-between border-b border-zinc-800/80 px-4 py-2.5">
-        <span className="flex items-center gap-2 font-mono text-xs font-semibold tracking-wider text-zinc-200">
-          <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-          AI RULE COMPILER
-        </span>
-        {parserMode && (
-          <span className="rounded bg-zinc-900 px-2 py-0.5 font-mono text-[10px] text-zinc-400">
-            ENGINE: {parserMode.toUpperCase()}
-          </span>
-        )}
+    <section className="flex h-full flex-col bg-black">
+      <div className="border-b border-white/[0.08] px-6 py-4">
+        <h2 className="text-sm font-normal tracking-[-0.01em] text-zinc-100">Strategy Compiler</h2>
+        <p className="mt-0.5 text-xs font-light text-zinc-500">
+          Describe your entry, holder limits, and exit in plain language
+        </p>
       </div>
 
-      <form onSubmit={handleCompile} className="border-b border-zinc-800/80 p-4">
+      <form onSubmit={handleCompile} className="border-b border-white/[0.08] p-6">
         <textarea
           rows={3}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder='Type a rule in plain English... e.g. "Snipe new $TTEQ pairs under $100K cap, top 10 holders <15%, buy 0.05 ETH, TP 2x"'
-          className="w-full resize-none rounded-lg border border-zinc-800 bg-[#050505] p-3 font-mono text-xs text-zinc-100 placeholder-zinc-600 focus:border-cyan-400/60 focus:outline-none"
+          placeholder="e.g. Snipe new $TTEQ pairs under $100K cap, top 10 holders under 15%, buy 0.05 ETH, take profit at 2x"
+          className="w-full resize-none border-b border-white/10 bg-transparent pb-3 text-sm font-light leading-relaxed text-white placeholder-zinc-600 focus:border-white/40 focus:outline-none"
         />
 
-        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-1.5">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-3 text-xs font-light text-zinc-500">
             {EXAMPLES.map((ex, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setPrompt(ex)}
-                className="rounded border border-zinc-800 bg-zinc-900/70 px-2 py-1 font-mono text-[10px] text-zinc-400 transition hover:border-cyan-500/40 hover:text-cyan-300"
+                className="transition hover:text-zinc-200"
               >
-                Preset {i + 1}
+                Example {i + 1}
               </button>
             ))}
           </div>
@@ -107,19 +99,22 @@ export function RuleBuilderPanel({
           <button
             type="submit"
             disabled={loading || !prompt.trim()}
-            className="flex items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-400/15 px-4 py-2 font-mono text-xs font-semibold text-cyan-200 transition hover:bg-cyan-400/25 disabled:opacity-40"
+            className="rounded-full bg-white px-5 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200 disabled:opacity-30"
           >
-            <Zap className="h-3.5 w-3.5" />
-            {loading ? 'COMPILING...' : 'COMPILE RULE'}
+            {loading ? 'Compiling…' : 'Create Rule'}
           </button>
         </div>
       </form>
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+      <div className="flex-1 divide-y divide-white/[0.06] overflow-y-auto">
         {rules.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-800 text-center">
-            <p className="font-mono text-xs text-zinc-500">No active sniper rules yet.</p>
-            <p className="mt-1 text-[11px] text-zinc-600">Pick a preset above or type your own strategy.</p>
+          <div className="px-6 py-16 text-center">
+            <p className="text-sm font-extralight text-zinc-400">
+              No active execution rules yet.
+            </p>
+            <p className="mt-1 text-xs font-light text-zinc-600">
+              Select an example above or write your own trigger to begin monitoring.
+            </p>
           </div>
         ) : (
           rules.map((rule) => {
@@ -127,62 +122,54 @@ export function RuleBuilderPanel({
             return (
               <div
                 key={rule.id}
-                className={`rounded-lg border p-3.5 transition ${
-                  rule.active
-                    ? 'border-cyan-500/40 bg-[#060d10]'
-                    : 'border-zinc-800/80 bg-[#060606] opacity-60'
-                }`}
+                className={`px-6 py-5 transition ${rule.active ? 'opacity-100' : 'opacity-45'}`}
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-zinc-100">{rule.name}</span>
-                      <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 font-mono text-[10px] text-cyan-300">
-                        {matches} MATCH{matches === 1 ? '' : 'ES'}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-normal text-white">{rule.name}</span>
+                      <span className="text-xs font-light text-zinc-500 tabular-nums">
+                        {matches} {matches === 1 ? 'match' : 'matches'}
                       </span>
                     </div>
-                    <p className="mt-1 text-[11px] text-zinc-500">&ldquo;{rule.rawPrompt}&rdquo;</p>
+                    <p className="mt-1 text-xs font-light text-zinc-500">{rule.rawPrompt}</p>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-4 text-xs font-light">
                     <button
                       onClick={() => onToggleRule(rule.id)}
-                      className={`rounded p-1.5 transition ${
-                        rule.active
-                          ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
-                          : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
-                      }`}
-                      title="Toggle rule"
+                      className={rule.active ? 'text-emerald-400' : 'text-zinc-500 hover:text-white'}
                     >
-                      <Power className="h-3.5 w-3.5" />
+                      {rule.active ? 'Active' : 'Paused'}
                     </button>
                     <button
                       onClick={() => onDeleteRule(rule.id)}
-                      className="rounded bg-zinc-900 p-1.5 text-zinc-500 transition hover:bg-rose-500/15 hover:text-rose-400"
-                      title="Delete rule"
+                      className="text-zinc-600 transition hover:text-rose-400"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      ×
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-3 grid grid-cols-4 gap-2 rounded bg-[#030303] p-2 font-mono text-[10px]">
+                <div className="mt-4 grid grid-cols-4 gap-4 text-xs tabular-nums">
                   <div>
-                    <span className="block text-zinc-500">PAIR</span>
-                    <span className="text-cyan-300">{rule.pairAsset}</span>
+                    <span className="block text-[11px] font-light text-zinc-600">Pair</span>
+                    <span className="font-light text-zinc-200">{rule.pairAsset}</span>
                   </div>
                   <div>
-                    <span className="block text-zinc-500">MAX MCAP</span>
-                    <span className="text-zinc-200">${Math.round(rule.maxMcapUsd / 1000)}K</span>
+                    <span className="block text-[11px] font-light text-zinc-600">Max Cap</span>
+                    <span className="font-light text-zinc-200">
+                      ${Math.round(rule.maxMcapUsd / 1000)}K
+                    </span>
                   </div>
                   <div>
-                    <span className="block text-zinc-500">SIZE</span>
-                    <span className="text-zinc-200">{rule.buyAmountEth} ETH</span>
+                    <span className="block text-[11px] font-light text-zinc-600">Size</span>
+                    <span className="font-light text-zinc-200">{rule.buyAmountEth} ETH</span>
                   </div>
                   <div>
-                    <span className="block text-zinc-500">TP / SL</span>
-                    <span className="text-emerald-400">
-                      {rule.takeProfitMultiplier}x / -{rule.stopLossPct}%
+                    <span className="block text-[11px] font-light text-zinc-600">Target / Stop</span>
+                    <span className="font-light text-zinc-200">
+                      {rule.takeProfitMultiplier}x / −{rule.stopLossPct}%
                     </span>
                   </div>
                 </div>
