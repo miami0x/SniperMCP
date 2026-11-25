@@ -48,10 +48,10 @@ export default function LandingPage() {
       {/* HERO SECTION */}
       <section className="relative flex min-h-screen flex-col justify-between overflow-hidden">
         <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat md:bg-center"
+          className="pointer-events-none absolute inset-0 bg-cover bg-[78%_18%] bg-no-repeat md:bg-center"
           style={{ backgroundImage: "url('/hero-sniper.jpg')" }}
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/95 via-black/65 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-black/15 md:bg-gradient-to-r md:from-black/95 md:via-black/65 md:to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#050505] to-transparent" />
 
         {/* Floating Smoked-Glass Navbar */}
@@ -105,7 +105,7 @@ export default function LandingPage() {
         </header>
 
         {/* Left-aligned Hero Content */}
-        <div className="relative z-10 mx-auto flex w-[94%] max-w-6xl flex-1 flex-col justify-center py-16">
+        <div className="relative z-10 mx-auto flex w-[94%] max-w-6xl flex-1 flex-col justify-end pb-14 pt-64 md:justify-center md:py-16">
           <div className="max-w-xl">
             <Link
               href="/terminal"

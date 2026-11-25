@@ -4,12 +4,15 @@ export default function DocsPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-100">
       {/* DOCS HERO */}
-      <section className="relative flex min-h-[62vh] flex-col justify-between overflow-hidden">
+      <section className="relative flex min-h-[82vh] flex-col justify-between overflow-hidden">
+        {/* Shifted down so the workbench & marksman sit lower in frame */}
         <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat md:bg-center"
+          className="pointer-events-none absolute inset-x-0 bottom-0 top-24 bg-cover bg-[80%_top] bg-no-repeat md:top-32 md:bg-[center_top]"
           style={{ backgroundImage: "url('/hero-docs.jpg')" }}
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-transparent" />
+        {/* Seamless top, left, and bottom fades */}
+        <div className="pointer-events-none absolute inset-x-0 top-20 h-32 bg-gradient-to-b from-[#050505] to-transparent md:top-28" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/65 to-transparent md:bg-gradient-to-r md:from-black/95 md:via-black/65 md:to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#050505] to-transparent" />
 
         <header className="relative z-10 mx-auto mt-5 w-[94%] max-w-6xl rounded-full border border-white/15 bg-black/55 px-6 py-3 backdrop-blur-2xl">
@@ -31,7 +34,7 @@ export default function DocsPage() {
           </div>
         </header>
 
-        <div className="relative z-10 mx-auto w-[94%] max-w-6xl py-16">
+        <div className="relative z-10 mx-auto w-[94%] max-w-6xl pb-16 pt-48 md:py-20">
           <div className="max-w-xl">
             <p className="text-xs font-light uppercase tracking-[0.22em] text-emerald-400/80">
               Documentation &amp; Guardrails
