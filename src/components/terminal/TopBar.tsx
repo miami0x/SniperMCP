@@ -2,6 +2,7 @@
 
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
+import { Broadcast, Wallet, SignOut } from '@phosphor-icons/react';
 
 interface TopBarProps {
   source: 'live' | 'fallback';
@@ -15,44 +16,46 @@ export function TopBar({ source, activeRuleCount, poolCount }: TopBarProps) {
   const { disconnect } = useDisconnect();
 
   return (
-    <header className="flex items-center justify-between border-b border-white/[0.08] bg-black px-6 py-4">
+    <header className="relative z-10 flex items-center justify-between border-b border-white/[0.08] bg-black/40 px-6 py-4 backdrop-blur-xl">
       <div className="flex items-baseline gap-4">
-        <h1 className="text-lg font-light tracking-[-0.03em] text-white">
-          Sniper<span className="text-zinc-500">MCP</span>
+        <h1 className="bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-lg font-light tracking-[-0.03em] text-transparent">
+          Sniper<span className="font-normal text-sky-400">MCP</span>
         </h1>
-        <span className="hidden text-xs font-light text-zinc-500 sm:inline">
+        <span className="hidden rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-0.5 text-[11px] font-light text-sky-300 sm:inline">
           Robinhood Chain · 4663
         </span>
       </div>
 
       <div className="flex items-center gap-6">
         <div className="hidden items-center gap-5 text-xs font-light text-zinc-400 md:flex tabular-nums">
-          <span className="flex items-center gap-2">
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                source === 'live' ? 'bg-emerald-400' : 'bg-zinc-500'
-              }`}
+          <span className="flex items-center gap-1.5">
+            <Broadcast
+              weight="thin"
+              className={`h-4 w-4 ${source === 'live' ? 'text-emerald-400' : 'text-zinc-500'}`}
             />
-            {source === 'live' ? 'Live feed' : 'Simulated feed'}
+            {source === 'live' ? 'Live feed' : 'Simulated'}
           </span>
           <span className="text-zinc-700">/</span>
           <span>{poolCount} pools</span>
           <span className="text-zinc-700">/</span>
-          <span className="text-zinc-200">{activeRuleCount} active rules</span>
+          <span className="text-sky-300">{activeRuleCount} active rules</span>
         </div>
 
         {isConnected && address ? (
           <button
             onClick={() => disconnect()}
-            className="rounded-full border border-white/15 px-4 py-1.5 text-xs font-normal text-zinc-200 transition hover:border-white/30 hover:text-white tabular-nums"
+            className="flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-4 py-1.5 text-xs font-light text-zinc-100 backdrop-blur-md transition hover:border-white/30 tabular-nums"
           >
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
             {address.slice(0, 6)}…{address.slice(-4)}
+            <SignOut weight="thin" className="h-3.5 w-3.5 text-zinc-400" />
           </button>
         ) : (
           <button
             onClick={() => connect({ connector: injected() })}
-            className="rounded-full bg-white px-4 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200"
+            className="liquid-btn flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition"
           >
+            <Wallet weight="regular" className="h-3.5 w-3.5" />
             Connect Wallet
           </button>
         )}

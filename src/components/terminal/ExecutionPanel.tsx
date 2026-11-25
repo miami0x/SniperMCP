@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ShieldCheck } from '@phosphor-icons/react';
 import type { RadarPool, SimulationResult } from '@/types/sniper';
 
 interface ExecutionPanelProps {
@@ -55,12 +56,15 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
   }
 
   return (
-    <section className="flex h-full flex-col bg-black">
-      <div className="border-b border-white/[0.08] px-6 py-4">
-        <h2 className="text-sm font-normal tracking-[-0.01em] text-zinc-100">Execution</h2>
-        <p className="mt-0.5 text-xs font-light text-zinc-500">
-          Pre-flight simulation and active positions
-        </p>
+    <section className="glass-panel flex h-full flex-col overflow-hidden rounded-2xl">
+      <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-4">
+        <div>
+          <h2 className="text-sm font-normal tracking-[-0.01em] text-white">Execution</h2>
+          <p className="mt-0.5 text-xs font-light text-zinc-400">
+            Pre-flight simulation &amp; positions
+          </p>
+        </div>
+        <ShieldCheck weight="thin" className="h-4 w-4 text-emerald-400/80" />
       </div>
 
       <div className="border-b border-white/[0.08] p-6">
@@ -68,19 +72,19 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
           <>
             <div className="flex items-baseline justify-between">
               <div>
-                <span className="text-xl font-extralight tracking-[-0.03em] text-white">
+                <span className="bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-xl font-extralight tracking-[-0.03em] text-transparent">
                   {selectedPool.baseToken.symbol}
                 </span>
                 <span className="ml-1.5 text-sm font-light text-zinc-500">
                   /{selectedPool.quoteToken.symbol}
                 </span>
               </div>
-              <span className="text-xs font-light text-zinc-600 tabular-nums">
+              <span className="text-xs font-light text-zinc-500 tabular-nums">
                 {selectedPool.baseToken.address.slice(0, 6)}…{selectedPool.baseToken.address.slice(-4)}
               </span>
             </div>
 
-            <div className="mt-6 flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="mt-6 flex items-center justify-between rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3">
               <div className="flex items-baseline gap-2">
                 <input
                   type="number"
@@ -95,19 +99,19 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
               <button
                 onClick={handleSimulate}
                 disabled={simLoading}
-                className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-normal text-white transition hover:border-white/50 disabled:opacity-40"
+                className="rounded-full border border-sky-400/35 bg-sky-400/10 px-4 py-1.5 text-xs font-normal text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-40"
               >
                 {simLoading ? 'Checking…' : 'Simulate'}
               </button>
             </div>
 
             {simResult && (
-              <div className="mt-5 space-y-3 text-xs font-light">
+              <div className="mt-5 space-y-3 rounded-xl border border-white/[0.06] bg-black/30 p-4 text-xs font-light">
                 <div className="flex items-center justify-between">
                   <span className={simResult.safe ? 'text-emerald-400' : 'text-amber-400'}>
                     Risk · {simResult.honeypotRisk}
                   </span>
-                  <span className="text-zinc-500 tabular-nums">{simResult.estimatedGasGwei} gwei</span>
+                  <span className="text-zinc-400 tabular-nums">{simResult.estimatedGasGwei} gwei</span>
                 </div>
 
                 <ul className="space-y-1.5 text-zinc-400">
@@ -120,7 +124,7 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
 
                 <button
                   onClick={handlePaperSnipe}
-                  className="mt-2 w-full rounded-full bg-white py-2.5 text-xs font-medium text-black transition hover:bg-zinc-200"
+                  className="liquid-btn mt-2 w-full rounded-full py-2.5 text-xs font-medium transition"
                 >
                   Execute Paper Snipe ({buyAmount} ETH)
                 </button>
@@ -128,7 +132,7 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
             )}
           </>
         ) : (
-          <p className="py-8 text-center text-xs font-light text-zinc-600">
+          <p className="py-8 text-center text-xs font-light text-zinc-500">
             Select a pool from the radar to inspect and simulate.
           </p>
         )}
@@ -136,9 +140,7 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden p-6">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs font-normal text-zinc-400">
-            Positions ({positions.length})
-          </span>
+          <span className="text-xs font-normal text-zinc-400">Positions ({positions.length})</span>
           {positions.length > 0 && (
             <button
               onClick={() => setPositions([])}
@@ -151,7 +153,7 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
 
         <div className="flex-1 divide-y divide-white/[0.06] overflow-y-auto">
           {positions.length === 0 ? (
-            <p className="py-10 text-center text-xs font-light text-zinc-600">
+            <p className="py-10 text-center text-xs font-light text-zinc-500">
               No open positions.
             </p>
           ) : (
@@ -160,9 +162,7 @@ export function ExecutionPanel({ selectedPool }: ExecutionPanelProps) {
                 <div>
                   <span className="font-normal text-white">{pos.symbol}</span>
                   <span className="text-zinc-500">/{pos.quote}</span>
-                  <span className="block text-[11px] font-light text-zinc-600">
-                    {pos.entryEth} ETH
-                  </span>
+                  <span className="block text-[11px] font-light text-zinc-500">{pos.entryEth} ETH</span>
                 </div>
                 <span className={pos.pnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
                   {pos.pnlPct >= 0 ? '+' : ''}
