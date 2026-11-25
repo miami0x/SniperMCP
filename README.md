@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SniperMCP
 
-## Getting Started
+**Zero-Setup AI Trench Terminal & Stock-Pair Execution Engine for Robinhood Chain (L2).**
 
-First, run the development server:
+![Network](https://img.shields.io/badge/Network-Robinhood%20Chain%20(4663)-22d3ee?style=flat-square&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-10b981?style=flat-square)
 
-```bash
+SniperMCP replaces complex local CLI/MCP agent setups with a real-time web terminal purpose-built for Robinhood Chain's stock-paired memecoin ecosystem (`$TTEQ`, `$NVDA`, `$META`, `$AAPL`, `$TSLA`).
+
+---
+
+## System Architecture
+
+```text
++-----------------------+       +-------------------------+       +-------------------------+
+|  Robinhood Chain RPC  |       |   AI Rule Compiler      |       |  Pre-Flight Simulator   |
+|  & Live Pool Feeds    | ----> |  (Natural Language ->   | ----> |  (Bytecode, Gas &       |
+|  ($TTEQ/$NVDA/$META)  |       |   Validated JSON Rules) |       |   Honeypot Guardrails)  |
++-----------------------+       +-------------------------+       +-------------------------+
+            |                                 |                                 |
+            v                                 v                                 v
+      [ Live Radar ]                  [ Strategy Cards ]               [ Execution & PnL ]
+Core CapabilitiesStock-Paired Pool Radar — Real-time pool monitoring with instant filtering for tokenized-equity pairs ($TTEQ, $NVDA, $META), liquidity depth, holder concentration, and safety scoring.Natural-Language Rule Compiler — Write execution rules in plain English (e.g. "Snipe new $TTEQ pairs under $100K cap, top 10 holders <15%, buy 0.05 ETH, TP 2x") and compile them into structured, toggleable strategy cards with live match tracking.Pre-Flight Swap Simulation — On-chain bytecode verification, live gas estimation, and risk checks before any trade is signed.Responsive Terminal UX — 3-column desktop command center that collapses into a dedicated tabbed terminal on mobile.Network ConfigurationParameterMainnetTestnetChain ID4663 (0x1237)46630 (0xb626)Native Gas TokenETHETHBlock Explorerrobinhoodchain.blockscout.comexplorer.testnet.chain.robinhood.comLocal DevelopmentBashgit clone [https://github.com/miami0x/SniperMCP.git](https://github.com/miami0x/SniperMCP.git)
+cd SniperMCP
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Environment VariablesVariableRequiredDescriptionNEXT_PUBLIC_CHAIN_ENVOptionalmainnet (default) or testnetNEXT_PUBLIC_ROBINHOOD_MAINNET_RPCOptionalCustom Robinhood Chain RPC endpointLLM_API_KEYOptionalOpenAI-compatible API key for LLM rule compilation (falls back to local parser if omitted)LLM_MODELOptionalModel identifier (default: gpt-4o-mini)Roadmap[x] V1: Live pool radar, AI rule compiler, pre-flight bytecode simulator, mobile tab terminal[ ] V2: Direct Uniswap router execution, FeeRouter contract (0.5% fee), real wallet PnL tracking[ ] V3: Telegram bot mirror for real-time rule triggers & 1-click panic sellBuilt for high-velocity on-chain research and execution. Always verify contracts before signing transactions.
