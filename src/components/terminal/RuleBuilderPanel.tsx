@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { SlidersHorizontal, Trash } from '@phosphor-icons/react';
 import type { RadarPool, SniperRule } from '@/types/sniper';
 
 interface RuleBuilderPanelProps {
@@ -66,15 +65,12 @@ export function RuleBuilderPanel({
   }
 
   return (
-    <section className="glass-panel flex h-full flex-col overflow-hidden rounded-2xl">
-      <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-4">
-        <div>
-          <h2 className="text-sm font-normal tracking-[-0.01em] text-white">Strategy Compiler</h2>
-          <p className="mt-0.5 text-xs font-light text-zinc-400">
-            Describe entry, holder limits, and exit in plain language
-          </p>
-        </div>
-        <SlidersHorizontal weight="thin" className="h-4 w-4 text-emerald-400/80" />
+    <section className="flex h-full flex-col bg-[#050505]">
+      <div className="border-b border-white/[0.08] px-6 py-4">
+        <h2 className="text-sm font-medium tracking-[-0.01em] text-white">Strategy Compiler</h2>
+        <p className="mt-0.5 text-xs font-light text-zinc-500">
+          Describe entry, holder limits, and exit in plain language
+        </p>
       </div>
 
       <form onSubmit={handleCompile} className="border-b border-white/[0.08] p-6">
@@ -83,7 +79,7 @@ export function RuleBuilderPanel({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="e.g. Snipe new $TTEQ pairs under $100K cap, top 10 holders under 15%, buy 0.05 ETH, take profit at 2x"
-          className="w-full resize-none rounded-xl border border-white/[0.08] bg-black/40 p-3.5 text-sm font-light leading-relaxed text-white placeholder-zinc-500 focus:border-emerald-400/40 focus:outline-none"
+          className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-sm font-light leading-relaxed text-white placeholder-zinc-600 focus:border-emerald-400/40 focus:outline-none"
         />
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -93,7 +89,7 @@ export function RuleBuilderPanel({
                 key={i}
                 type="button"
                 onClick={() => setPrompt(ex)}
-                className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-zinc-400 transition hover:border-white/20 hover:text-white"
+                className="rounded-full border border-white/10 bg-white/[0.02] px-3 py-1 text-zinc-400 transition hover:border-white/25 hover:text-white"
               >
                 Preset {i + 1}
               </button>
@@ -103,7 +99,7 @@ export function RuleBuilderPanel({
           <button
             type="submit"
             disabled={loading || !prompt.trim()}
-            className="liquid-btn rounded-full px-5 py-1.5 text-xs font-medium transition disabled:opacity-35"
+            className="rounded-full bg-white px-5 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200 disabled:opacity-30"
           >
             {loading ? 'Compiling…' : 'Create Rule'}
           </button>
@@ -129,7 +125,7 @@ export function RuleBuilderPanel({
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <span className="text-sm font-normal text-white">{rule.name}</span>
+                      <span className="text-sm font-medium text-white">{rule.name}</span>
                       <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-300 tabular-nums">
                         {matches} {matches === 1 ? 'match' : 'matches'}
                       </span>
@@ -137,7 +133,7 @@ export function RuleBuilderPanel({
                     <p className="mt-1 text-xs font-light text-zinc-400">{rule.rawPrompt}</p>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs font-light">
+                  <div className="flex items-center gap-4 text-xs font-light">
                     <button
                       onClick={() => onToggleRule(rule.id)}
                       className={rule.active ? 'text-emerald-400' : 'text-zinc-500 hover:text-white'}
@@ -148,12 +144,12 @@ export function RuleBuilderPanel({
                       onClick={() => onDeleteRule(rule.id)}
                       className="text-zinc-500 transition hover:text-rose-400"
                     >
-                      <Trash weight="thin" className="h-4 w-4" />
+                      ×
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-4 gap-4 rounded-xl border border-white/[0.05] bg-black/30 p-3 text-xs tabular-nums">
+                <div className="mt-4 grid grid-cols-4 gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-xs tabular-nums">
                   <div>
                     <span className="block text-[10px] font-light text-zinc-500">Pair</span>
                     <span className="text-emerald-300">{rule.pairAsset}</span>
