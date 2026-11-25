@@ -1,114 +1,182 @@
-'use client';
+import Link from 'next/link';
+import { ArrowUpRight, Crosshair, ShieldCheck, Lightning } from '@phosphor-icons/react/dist/ssr';
 
-import { useEffect, useState, useCallback } from 'react';
-import { TopBar } from '@/components/terminal/TopBar';
-import { RadarPanel } from '@/components/terminal/RadarPanel';
-import { RuleBuilderPanel } from '@/components/terminal/RuleBuilderPanel';
-import { ExecutionPanel } from '@/components/terminal/ExecutionPanel';
-import type { RadarPool, SniperRule } from '@/types/sniper';
+const STOCK_PAIRS = ['$TTEQ', '$NVDA', '$META', '$TSLA', '$AAPL', '$SPY'];
 
-type MobileTab = 'radar' | 'rules' | 'exec';
+const STEPS = [
+  {
+    num: '01',
+    title: 'Scan stock-paired launches',
+    desc: 'Monitor new Robinhood Chain pools in real time—filtered specifically for tokenized equity pairs like $TTEQ, $NVDA, and $META.',
+    icon: Crosshair,
+  },
+  {
+    num: '02',
+    title: 'Write rules in plain English',
+    desc: 'No local CLI or MCP config files. Type your market cap, top-10 holder cap, and take-profit targets once and compile into a live trigger.',
+    icon: Lightning,
+  },
+  {
+    num: '03',
+    title: 'Pre-flight bytecode guardrails',
+    desc: 'Every target runs through on-chain bytecode verification, gas estimation, and honeypot checks before a single wei is signed.',
+    icon: ShieldCheck,
+  },
+];
 
-export default function TerminalPage() {
-  const [pools, setPools] = useState<RadarPool[]>([]);
-  const [source, setSource] = useState<'live' | 'fallback'>('fallback');
-  const [loading, setLoading] = useState(true);
-  const [selectedPool, setSelectedPool] = useState<RadarPool | null>(null);
-  const [rules, setRules] = useState<SniperRule[]>([]);
-  const [mobileTab, setMobileTab] = useState<MobileTab>('radar');
-
-  const fetchRadar = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/radar');
-      const data = await res.json();
-      setPools(data.pools || []);
-      setSource(data.source === 'live' ? 'live' : 'fallback');
-      if (!selectedPool && data.pools?.length > 0) {
-        setSelectedPool(data.pools[0]);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedPool]);
-
-  useEffect(() => {
-    fetchRadar();
-    const timer = setInterval(fetchRadar, 20000);
-    return () => clearInterval(timer);
-  }, [fetchRadar]);
-
-  const activeRuleCount = rules.filter((r) => r.active).length;
-
+export default function LandingPage() {
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#020305]">
-      {/* Ambient refraction orbs for glassmorphism */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-sky-500/[0.11] blur-[120px]" />
-        <div className="absolute right-[-120px] top-1/3 h-[380px] w-[380px] rounded-full bg-emerald-500/[0.08] blur-[120px]" />
-        <div className="absolute bottom-[-140px] left-1/3 h-[360px] w-[360px] rounded-full bg-indigo-500/[0.09] blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-[#040a08] text-zinc-100">
+      {/* HERO SECTION */}
+      <section className="relative flex min-h-screen flex-col justify-between overflow-hidden">
+        {/* Full-bleed 3D Diorama Background */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat md:bg-center"
+          style={{ backgroundImage: "url('/hero-sniper.jpg')" }}
+        />
+        {/* Subtle left-to-right vignette so text stays razor sharp */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#030806]/95 via-[#030806]/65 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#040a08] to-transparent" />
 
-      <TopBar source={source} activeRuleCount={activeRuleCount} poolCount={pools.length} />
+        {/* Floating Glass Navbar */}
+        <header className="relative z-10 mx-auto mt-5 w-[94%] max-w-6xl rounded-full border border-white/10 bg-[#05100c]/60 px-5 py-3 backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]" />
+              <span className="text-base font-normal tracking-[-0.02em] text-white">
+                Sniper<span className="text-emerald-400">MCP</span>
+              </span>
+            </Link>
 
-      {/* Mobile Tab Bar */}
-      <div className="relative z-10 grid grid-cols-3 border-b border-white/[0.08] bg-black/50 text-xs font-light backdrop-blur-xl lg:hidden">
-        <button
-          onClick={() => setMobileTab('radar')}
-          className={`py-3 transition ${
-            mobileTab === 'radar' ? 'border-b border-sky-400 text-white' : 'text-zinc-500'
-          }`}
-        >
-          Radar ({pools.length})
-        </button>
-        <button
-          onClick={() => setMobileTab('rules')}
-          className={`py-3 transition ${
-            mobileTab === 'rules' ? 'border-b border-sky-400 text-white' : 'text-zinc-500'
-          }`}
-        >
-          Rules ({activeRuleCount})
-        </button>
-        <button
-          onClick={() => setMobileTab('exec')}
-          className={`py-3 transition ${
-            mobileTab === 'exec' ? 'border-b border-sky-400 text-white' : 'text-zinc-500'
-          }`}
-        >
-          Execute
-        </button>
-      </div>
+            <nav className="hidden items-center gap-7 text-xs font-light text-zinc-300 md:flex">
+              <a href="#how-it-works" className="transition hover:text-white">
+                How it works
+              </a>
+              <a href="#pairs" className="transition hover:text-white">
+                Stock pairs
+              </a>
+              <a
+                href="https://github.com/miami0x/SniperMCP"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-white"
+              >
+                GitHub
+              </a>
+              <Link
+                href="/terminal"
+                className="flex items-center gap-1 rounded-full border border-emerald-400/35 bg-emerald-400/15 px-4 py-1.5 font-normal text-emerald-200 transition hover:bg-emerald-400/25"
+              >
+                Launch Terminal <ArrowUpRight weight="thin" className="h-3.5 w-3.5" />
+              </Link>
+            </nav>
 
-      <main className="relative z-10 grid flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-12">
-        <div className={`${mobileTab === 'radar' ? 'block' : 'hidden'} lg:col-span-4 lg:block xl:col-span-3`}>
-          <RadarPanel
-            pools={pools}
-            selectedPoolId={selectedPool?.id || null}
-            onSelectPool={(pool) => {
-              setSelectedPool(pool);
-              setMobileTab('exec');
-            }}
-            onRefresh={fetchRadar}
-            loading={loading}
-          />
+            <Link
+              href="/terminal"
+              className="flex items-center gap-1 rounded-full border border-emerald-400/35 bg-emerald-400/15 px-3.5 py-1.5 text-xs text-emerald-200 md:hidden"
+            >
+              Terminal <ArrowUpRight weight="thin" className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </header>
+
+        {/* Left-aligned Hero Content */}
+        <div className="relative z-10 mx-auto flex w-[94%] max-w-6xl flex-1 flex-col justify-center py-16">
+          <div className="max-w-xl">
+            <Link
+              href="/terminal"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-5 py-2.5 text-xs font-normal text-white backdrop-blur-md transition hover:border-emerald-400/50 hover:bg-emerald-400/15"
+            >
+              Launch SniperMCP <ArrowUpRight weight="thin" className="h-4 w-4 text-emerald-300" />
+            </Link>
+
+            {/* Plain-English Rule Preview Box (Oak-style, consumer-ready) */}
+            <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-[#04110c]/75 p-4 font-mono text-xs leading-relaxed text-emerald-300/95 backdrop-blur-xl">
+              <div className="mb-1.5 text-[10px] uppercase tracking-widest text-zinc-500">
+                Natural-Language Trigger
+              </div>
+              <p>
+                &gt; Snipe new <span className="text-white">$TTEQ</span> pairs under{' '}
+                <span className="text-white">$100K</span> cap, top 10 holders &lt;15%, buy{' '}
+                <span className="text-white">0.05 ETH</span>, auto-TP 2x
+              </p>
+            </div>
+
+            <p className="mt-5 text-sm font-light leading-relaxed text-zinc-300">
+              No local CLI, no MCP config files, no subscription. Reads, radar scans, and pre-flight
+              simulations are free—just open the terminal and snipe Robinhood Chain&apos;s
+              stock-paired trenches.
+            </p>
+
+            <h1 className="mt-8 text-4xl font-extralight leading-[1.08] tracking-[-0.03em] text-white sm:text-6xl">
+              Your AI sniper,
+              <br />
+              <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-zinc-100 bg-clip-text font-normal text-transparent">
+                on Robinhood Chain.
+              </span>
+            </h1>
+          </div>
+        </div>
+      </section>
+
+      {/* BELOW THE FOLD: HOW IT WORKS */}
+      <section id="how-it-works" className="mx-auto max-w-6xl px-6 py-24">
+        <div className="max-w-lg">
+          <p className="text-xs font-light uppercase tracking-[0.2em] text-emerald-400">
+            How it works
+          </p>
+          <h2 className="mt-3 text-3xl font-extralight tracking-[-0.03em] text-white">
+            Built for speed, without the terminal setup.
+          </h2>
         </div>
 
-        <div className={`${mobileTab === 'rules' ? 'block' : 'hidden'} lg:col-span-4 lg:block xl:col-span-5`}>
-          <RuleBuilderPanel
-            rules={rules}
-            pools={pools}
-            onAddRule={(rule) => setRules((prev) => [rule, ...prev])}
-            onToggleRule={(id) =>
-              setRules((prev) => prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r)))
-            }
-            onDeleteRule={(id) => setRules((prev) => prev.filter((r) => r.id !== id))}
-          />
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {STEPS.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.num}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 backdrop-blur-md transition hover:border-emerald-400/25"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-zinc-500">{step.num}</span>
+                  <Icon weight="thin" className="h-5 w-5 text-emerald-400" />
+                </div>
+                <h3 className="mt-6 text-base font-normal text-white">{step.title}</h3>
+                <p className="mt-2 text-xs font-light leading-relaxed text-zinc-400">{step.desc}</p>
+              </div>
+            );
+          })}
         </div>
+      </section>
 
-        <div className={`${mobileTab === 'exec' ? 'block' : 'hidden'} lg:col-span-4 lg:block xl:col-span-4`}>
-          <ExecutionPanel selectedPool={selectedPool} />
+      {/* SUPPORTED STOCK PAIRS + FINAL CTA */}
+      <section id="pairs" className="border-t border-white/[0.08] py-20">
+        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 px-6 md:flex-row md:items-center">
+          <div>
+            <p className="text-xs font-light uppercase tracking-[0.2em] text-zinc-500">
+              Native Stock-Pair Radar · Chain ID 4663
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {STOCK_PAIRS.map((sym) => (
+                <span
+                  key={sym}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 font-mono text-xs text-zinc-200"
+                >
+                  {sym}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <Link
+            href="/terminal"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-xs font-medium text-black transition hover:bg-zinc-200"
+          >
+            Enter Terminal <ArrowUpRight weight="regular" className="h-4 w-4" />
+          </Link>
         </div>
-      </main>
+      </section>
     </div>
   );
 }
