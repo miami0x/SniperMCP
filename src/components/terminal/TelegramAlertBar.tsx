@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface TelegramAlertBarProps {
   walletKey: string;
@@ -16,20 +16,42 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
   const [copied, setCopied] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
-  useEffect(() => {
+  const checkAlertStatus = useCallback(async () => {
     if (isGuest) {
       setConnected(false);
       setUsername(null);
       return;
     }
-    fetch(`/api/alerts?wallet=${encodeURIComponent(walletKey)}`)
-      .then((r) => r.json())
-      .then((d) => {
-        setConnected(Boolean(d.connected));
-        setUsername(d.username || null);
-      })
-      .catch(() => {});
+    try {
+      const res = await fetch(`/api/alerts?wallet=${encodeURIComponent(walletKey)}`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setConnected(Boolean(data.connected));
+      setUsername(data.username || null);
+    } catch {
+      // Ignore transient network errors during background polling
+    }
   }, [walletKey, isGuest]);
+
+  useEffect(() => {
+    checkAlertStatus();
+  }, [checkAlertStatus]);
+
+  // Poll every 3s while wallet is connected but Telegram isn't linked yet, plus re-check on tab focus
+  useEffect(() => {
+    if (isGuest || connected) return;
+
+    const interval = setInterval(checkAlertStatus, 3000);
+    const onFocus = () => checkAlertStatus();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [isGuest, connected, checkAlertStatus]);
 
   async function handleTestAlert() {
     if (isGuest) return;
@@ -56,6 +78,7 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
     if (isGuest) return;
     await navigator.clipboard.writeText(walletKey);
     setCopied(true);
+    checkAlertStatus();
     setTimeout(() => setCopied(false), 2500);
   }
 
@@ -76,7 +99,7 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
               ? 'Connect wallet to enable'
               : connected
                 ? `Active${username ? ` (@${username})` : ''}`
-                : 'Off'}
+                : 'Waiting for link…'}
           </span>
         </span>
         {statusMsg && <span className="text-emerald-400">· {statusMsg}</span>}
@@ -104,6 +127,7 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
               href={deepLink}
               target="_blank"
               rel="noreferrer"
+              onClick={() => setTimeout(checkAlertStatus, 1500)}
               className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] text-emerald-300 transition hover:bg-emerald-400/20"
             >
               Enable Alerts ↗
