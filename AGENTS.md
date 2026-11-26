@@ -1,9 +1,32 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# AGENTS.md — SniperMCP Engineering Guide
 
-## This is NOT the Next.js you know
+## Overview
+SniperMCP is a non-custodial AI sniper terminal for **Robinhood Chain** (Mainnet `4663` / Testnet `46630`).
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+## Tech Stack
+- **Framework:** Next.js 16 (App Router, Turbopack), TypeScript, Tailwind CSS
+- **Web3:** Wagmi + Viem
+- **Database:** Neon Serverless Postgres + Drizzle ORM (`@neondatabase/serverless` at runtime, `pg` devDep for `drizzle-kit push`)
+- **Market Data:** GeckoTerminal v2 API (`networks/robinhood`)
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+## Key Paths
+- `src/app/page.tsx` — Editorial landing page
+- `src/app/docs/page.tsx` — Documentation & network parameters
+- `src/app/terminal/page.tsx` — Main 3-column trading terminal (persists rules per wallet)
+- `src/db/schema.ts` — `sniper_rules` and `positions` tables
+- `src/db/index.ts` — Neon HTTP Drizzle client
+- `src/app/api/radar/route.ts` — Live Robinhood Chain pool aggregator
+- `src/app/api/parse-rule/route.ts` — Natural-language rule compiler
+- `src/app/api/simulate/route.ts` — Pre-flight bytecode/gas simulator
+- `src/app/api/rules/route.ts` — Rules CRUD
+- `src/app/api/positions/route.ts` — Positions CRUD
 
-<!-- END:nextjs-agent-rules -->
+## Commands
+- `npm run dev` — Local development server
+- `npm run build` — Production build + TypeScript check
+- `npx drizzle-kit push` — Push schema changes to Neon (reads `.env.local`)
+
+## Conventions
+- Keep API routes consolidated by resource to minimize serverless function count.
+- Maintain the monochrome glassmorphism + emerald accent visual language (`#030504`, `border-white/10`, `emerald-400`).
+- Never commit `.env.local` or `CONTEXT.md`.
