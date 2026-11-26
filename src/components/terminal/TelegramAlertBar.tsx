@@ -9,12 +9,18 @@ interface TelegramAlertBarProps {
 const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'SniperMCP_bot';
 
 export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
+  const isGuest = walletKey === 'guest';
   const [connected, setConnected] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isGuest) {
+      setConnected(false);
+      setUsername(null);
+      return;
+    }
     fetch(`/api/alerts?wallet=${encodeURIComponent(walletKey)}`)
       .then((r) => r.json())
       .then((d) => {
@@ -22,9 +28,10 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
         setUsername(d.username || null);
       })
       .catch(() => {});
-  }, [walletKey]);
+  }, [walletKey, isGuest]);
 
-  async function handleTestPing() {
+  async function handleTestAlert() {
+    if (isGuest) return;
     setTesting(true);
     setStatusMsg(null);
     try {
@@ -34,11 +41,11 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
         body: JSON.stringify({
           action: 'notify',
           walletAddress: walletKey,
-          title: 'SniperMCP Test Ping',
-          message: 'Your Robinhood Chain rule alerts are live.',
+          title: 'SniperMCP Alert Active',
+          message: 'You are all set to receive real-time Robinhood Chain pool triggers.',
         }),
       });
-      setStatusMsg(res.ok ? 'Ping sent' : 'Connect bot first');
+      setStatusMsg(res.ok ? 'Alert sent' : 'Link Telegram first');
     } finally {
       setTesting(false);
     }
@@ -57,29 +64,33 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
         <span className="font-light">
           Telegram Alerts:{' '}
           <span className="text-zinc-200">
-            {connected ? `Connected${username ? ` (@${username})` : ''}` : 'Not linked'}
+            {isGuest
+              ? 'Connect wallet to enable'
+              : connected
+                ? `Active${username ? ` (@${username})` : ''}`
+                : 'Off'}
           </span>
         </span>
         {statusMsg && <span className="text-emerald-400">· {statusMsg}</span>}
       </div>
 
       <div className="flex items-center gap-2">
-        {connected ? (
+        {isGuest ? null : connected ? (
           <button
-            onClick={handleTestPing}
+            onClick={handleTestAlert}
             disabled={testing}
-            className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] text-emerald-300 transition hover:bg-emerald-400/20 disabled:opacity-40"
+            className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] text-zinc-300 transition hover:border-emerald-400/40 hover:text-white disabled:opacity-40"
           >
-            {testing ? 'Sending…' : 'Send Test Ping'}
+            {testing ? 'Sending…' : 'Test Alert'}
           </button>
         ) : (
           <a
             href={deepLink}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] text-white transition hover:border-emerald-400/40 hover:text-emerald-300"
+            className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] text-emerald-300 transition hover:bg-emerald-400/20"
           >
-            Connect @{BOT_USERNAME} ↗
+            Enable Alerts ↗
           </a>
         )}
       </div>
