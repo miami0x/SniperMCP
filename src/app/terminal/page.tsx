@@ -102,7 +102,7 @@ export default function TerminalPage() {
   const activeRuleCount = rules.filter((r) => r.active).length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#030504] text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-[#030504] text-zinc-100 lg:h-screen lg:overflow-hidden">
       <TopBar source={source} activeRuleCount={activeRuleCount} poolCount={pools.length} />
 
       {/* Mobile Tab Bar */}
@@ -133,11 +133,11 @@ export default function TerminalPage() {
         </button>
       </div>
 
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-12">
+      <main className="grid flex-1 grid-cols-1 gap-4 p-4 lg:min-h-0 lg:grid-cols-12 lg:overflow-hidden">
         <div
           className={`${
             mobileTab === 'radar' ? 'block' : 'hidden'
-          } overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-4 lg:block xl:col-span-3`}
+          } overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col xl:col-span-3`}
         >
           <RadarPanel
             pools={pools}
@@ -154,7 +154,7 @@ export default function TerminalPage() {
         <div
           className={`${
             mobileTab === 'rules' ? 'block' : 'hidden'
-          } overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-4 lg:block xl:col-span-5`}
+          } overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col xl:col-span-5`}
         >
           <RuleBuilderPanel
             rules={rules}
@@ -168,7 +168,7 @@ export default function TerminalPage() {
         <div
           className={`${
             mobileTab === 'exec' ? 'block' : 'hidden'
-          } overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-4 lg:block xl:col-span-4`}
+          } overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl lg:col-span-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col xl:col-span-4`}
         >
           <ExecutionPanel selectedPool={selectedPool} />
         </div>
