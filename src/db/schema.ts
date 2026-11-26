@@ -28,3 +28,10 @@ export const positions = pgTable('positions', {
   pnlPct: doublePrecision('pnl_pct').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const telegramSubscribers = pgTable('telegram_subscribers', {
+  walletAddress: text('wallet_address').primaryKey(),
+  chatId: text('chat_id').notNull(),
+  username: text('username'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { TopBar } from '@/components/terminal/TopBar';
+import { TelegramAlertBar } from '@/components/terminal/TelegramAlertBar';
 import { RadarPanel } from '@/components/terminal/RadarPanel';
 import { RuleBuilderPanel } from '@/components/terminal/RuleBuilderPanel';
 import { ExecutionPanel } from '@/components/terminal/ExecutionPanel';
@@ -104,6 +105,7 @@ export default function TerminalPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#030504] text-zinc-100 lg:h-screen lg:overflow-hidden">
       <TopBar source={source} activeRuleCount={activeRuleCount} poolCount={pools.length} />
+      <TelegramAlertBar walletKey={walletKey} />
 
       {/* Mobile Tab Bar */}
       <div className="grid grid-cols-3 border-b border-white/10 bg-black/60 text-xs font-light backdrop-blur-xl lg:hidden">
