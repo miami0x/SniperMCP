@@ -13,6 +13,7 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
   const [connected, setConnected] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,6 +52,13 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
     }
   }
 
+  async function handleCopyWallet() {
+    if (isGuest) return;
+    await navigator.clipboard.writeText(walletKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
   const deepLink = `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(walletKey)}`;
 
   return (
@@ -84,14 +92,23 @@ export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
             {testing ? 'Sending…' : 'Test Alert'}
           </button>
         ) : (
-          <a
-            href={deepLink}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] text-emerald-300 transition hover:bg-emerald-400/20"
-          >
-            Enable Alerts ↗
-          </a>
+          <>
+            <button
+              onClick={handleCopyWallet}
+              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] text-zinc-300 transition hover:border-white/25 hover:text-white"
+              title={`Paste into @${BOT_USERNAME} if the link doesn't open`}
+            >
+              {copied ? 'Copied! Paste in @SniperMCP_bot' : 'Copy Address for Bot'}
+            </button>
+            <a
+              href={deepLink}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] text-emerald-300 transition hover:bg-emerald-400/20"
+            >
+              Enable Alerts ↗
+            </a>
+          </>
         )}
       </div>
     </div>

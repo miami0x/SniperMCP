@@ -4,6 +4,7 @@ import { telegramSubscribers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const WALLET_REGEX = /^0x[a-fA-F0-9]{40}$/;
 
 async function sendTelegramMessage(chatId: string, text: string) {
   if (!BOT_TOKEN) return { ok: false, skipped: true };
@@ -24,6 +25,10 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const wallet = (searchParams.get('wallet') || 'guest').toLowerCase();
 
+  if (wallet === 'guest') {
+    return NextResponse.json({ connected: false, username: null });
+  }
+
   const [sub] = await db
     .select()
     .from(telegramSubscribers)
@@ -39,19 +44,27 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json();
 
-  // 1. Incoming Telegram Bot Webhook (/start <walletAddress>)
+  // 1. Incoming Telegram Bot Webhook (/start <0x...> OR raw 0x... wallet address)
   if (body?.message?.chat?.id && typeof body?.message?.text === 'string') {
     const chatId = String(body.message.chat.id);
     const username = body.message.from?.username || null;
     const text = body.message.text.trim();
 
-    if (text.startsWith('/start')) {
-      const parts = text.split(/\s+/);
-      const wallet = (parts[1] || 'guest').toLowerCase();
+    let candidateWallet: string | null = null;
 
+    if (text.startsWith('/start') || text.startsWith('/link')) {
+      const parts = text.split(/\s+/);
+      if (parts[1] && WALLET_REGEX.test(parts[1])) {
+        candidateWallet = parts[1].toLowerCase();
+      }
+    } else if (WALLET_REGEX.test(text)) {
+      candidateWallet = text.toLowerCase();
+    }
+
+    if (candidateWallet) {
       await db
         .insert(telegramSubscribers)
-        .values({ walletAddress: wallet, chatId, username })
+        .values({ walletAddress: candidateWallet, chatId, username })
         .onConflictDoUpdate({
           target: telegramSubscribers.walletAddress,
           set: { chatId, username },
@@ -59,7 +72,12 @@ export async function POST(req: Request) {
 
       await sendTelegramMessage(
         chatId,
-        `<b>SniperMCP Alerts Linked</b>\nWallet: <code>${wallet}</code>\n\nYou will receive instant pings whenever a new Robinhood Chain pool matches your active rules.`
+        `<b>SniperMCP Alerts Linked</b>\nWallet: <code>${candidateWallet}</code>\n\nYou will receive instant pings whenever a new Robinhood Chain pool matches your active rules.`
+      );
+    } else if (text.startsWith('/start')) {
+      await sendTelegramMessage(
+        chatId,
+        `<b>Welcome to SniperMCP Alerts</b>\n\nPaste your <code>0x...</code> wallet address here to link your terminal and start receiving live Robinhood Chain pool triggers.`
       );
     }
 
