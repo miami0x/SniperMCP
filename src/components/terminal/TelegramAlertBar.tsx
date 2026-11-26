@@ -6,7 +6,7 @@ interface TelegramAlertBarProps {
   walletKey: string;
 }
 
-const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'SniperMCPBot';
+const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'SniperMCP_bot';
 
 export function TelegramAlertBar({ walletKey }: TelegramAlertBarProps) {
   const [connected, setConnected] = useState(false);
